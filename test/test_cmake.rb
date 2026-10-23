@@ -260,7 +260,7 @@ class TestCMakeConfig < TestCMake
     exit_status = MiniTest::Mock.new
     exit_status.expect(:success?, true)
     expected_output = [cmake_script, exit_status]
-    open3_mock.expect(:call, expected_output, ['cmake --help'])
+    open3_mock.expect(:call, expected_output, [['cmake', '--help']])
     open3_mock
   end
 end
