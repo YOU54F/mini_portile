@@ -59,8 +59,14 @@ class MiniPortileCMake < MiniPortile
   def generator_defaults
     if MiniPortile.mswin? && generator_available?('NMake')
       ['-G', 'NMake Makefiles']
-    elsif MiniPortile.mingw? && generator_available?('MSYS')
-      ['-G', 'MSYS Makefiles']
+    elsif MiniPortile.mingw?
+      if generator_available?('MinGW')
+        ['-G', 'MinGW Makefiles']
+      elsif generator_available?('MSYS')
+        ['-G', 'MSYS Makefiles']
+      else
+        []
+      end
     else
       []
     end
