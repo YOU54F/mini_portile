@@ -8,6 +8,10 @@ class TestCMake < TestCase
     @assets_path = File.expand_path("../assets", __FILE__)
     @tar_path = File.expand_path("../../tmp/test-cmake-1.0.tar.gz", __FILE__)
 
+    # Skip CMake tests if cmake is not available
+    stdout, status = Open3.capture2("cmake --help")
+    skip "cmake not available" unless status.success?
+
     # remove any previous test files
     FileUtils.rm_rf("tmp")
 
@@ -151,16 +155,19 @@ class TestCMakeConfig < TestCMake
     end
   end
 
-  def test_configure_defaults_with_unix_makefiles
+  def test_configure_defaults_with_mingw_gcc
     MiniPortile.stub(:linux?, true) do
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
-          with_compilers do
-            Open3.stub(:capture2, cmake_help_mock('Unix')) do
-              MiniPortile.stub(:mingw?, true) do
-                assert_equal(default_x86_compile_flags,
-                             @recipe.configure_defaults)
-              end
+          with_compilers(c_compiler: 'gcc', cxx_compiler: 'g++') do
+            MiniPortile.stub(:mingw?, true) do
+              expected = ['-G', 'Unix Makefiles',
+                "-DCMAKE_SYSTEM_NAME=Linux",
+                "-DCMAKE_SYSTEM_PROCESSOR=x86_64",
+                "-DCMAKE_C_COMPILER=gcc",
+                "-DCMAKE_CXX_COMPILER=g++",
+                "-DCMAKE_BUILD_TYPE=Release"]
+              assert_equal(expected, @recipe.configure_defaults)
             end
           end
         end
@@ -168,15 +175,19 @@ class TestCMakeConfig < TestCMake
     end
   end
 
-  def test_configure_defaults_with_msys_makefiles
+  def test_configure_defaults_with_mingw_clang
     MiniPortile.stub(:linux?, true) do
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
-          with_compilers do
-            Open3.stub(:capture2, cmake_help_mock('MSYS')) do
-              MiniPortile.stub(:mingw?, true) do
-                assert_equal(['-G', 'MSYS Makefiles'] + default_x86_compile_flags, @recipe.configure_defaults)
-              end
+          with_compilers(c_compiler: 'clang', cxx_compiler: 'clang++') do
+            MiniPortile.stub(:mingw?, true) do
+              expected = ['-G', 'Unix Makefiles',
+                "-DCMAKE_SYSTEM_NAME=Linux",
+                "-DCMAKE_SYSTEM_PROCESSOR=x86_64",
+                "-DCMAKE_C_COMPILER=clang",
+                "-DCMAKE_CXX_COMPILER=clang++",
+                "-DCMAKE_BUILD_TYPE=Release"]
+              assert_equal(expected, @recipe.configure_defaults)
             end
           end
         end
@@ -189,7 +200,7 @@ class TestCMakeConfig < TestCMake
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
           with_compilers do
-            Open3.stub(:capture2, cmake_help_mock('NMake')) do
+            @recipe.stub(:generator_available?, ->(g) { g == 'NMake' }) do
               MiniPortile.stub(:mswin?, true) do
                 assert_equal(['-G', 'NMake Makefiles'] + default_x86_compile_flags, @recipe.configure_defaults)
               end

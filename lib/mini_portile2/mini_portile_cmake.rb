@@ -43,6 +43,7 @@ class MiniPortileCMake < MiniPortile
 
   def make_cmd
     return "nmake" if MiniPortile.mswin?
+    # On mingw, we use Makefile generators, so use `make`
     super
   end
 
@@ -59,8 +60,10 @@ class MiniPortileCMake < MiniPortile
   def generator_defaults
     if MiniPortile.mswin? && generator_available?('NMake')
       ['-G', 'NMake Makefiles']
-    elsif MiniPortile.mingw? && generator_available?('MSYS')
-      ['-G', 'MSYS Makefiles']
+    elsif MiniPortile.mingw?
+      # Use Unix Makefiles on MSYS2/MinGW - MinGW Makefiles has path escaping issues
+      # with newer CMake on ucrt64/mingw64 environments
+      ['-G', 'Unix Makefiles']
     else
       []
     end
@@ -106,7 +109,7 @@ class MiniPortileCMake < MiniPortile
   def generator_available?(generator_type)
     stdout_str, status = Open3.capture2([cmake_cmd, "--help"])
 
-    raise "Unable to determine whether CMake supports #{generator_type} Makefiles generator" unless status.success?
+    return false unless status.success?
 
     stdout_str.include?("#{generator_type} Makefiles")
   end

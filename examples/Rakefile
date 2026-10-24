@@ -96,7 +96,8 @@ class ZlibRecipe < MiniPortile
   def compile
     return super unless windows?
 
-    execute "compile", "make -f win32/Makefile.gcc -j1"
+    # Only build library targets, skip example.exe and minigzip.exe which fail to link on Windows
+    execute "compile", "make -f win32/Makefile.gcc -j1 libz.a zlib1.dll libz.dll.a"
   end
 
   def install
