@@ -60,8 +60,17 @@ class MiniPortileCMake < MiniPortile
     if MiniPortile.mswin? && generator_available?('NMake')
       ['-G', 'NMake Makefiles']
     elsif MiniPortile.mingw?
-      # Force MinGW Makefiles generator on MinGW/MSYS2 - generator_available? may not detect it correctly
-      ['-G', 'MinGW Makefiles']
+      # On MinGW/MSYS2, prefer Ninja if available (works with both GCC and Clang),
+      # otherwise fall back to MinGW Makefiles (GCC only) or Unix Makefiles
+      if generator_available?('Ninja')
+        ['-G', 'Ninja']
+      elsif generator_available?('MinGW') && cc_cmd !~ /clang/
+        ['-G', 'MinGW Makefiles']
+      elsif generator_available?('Unix')
+        ['-G', 'Unix Makefiles']
+      else
+        []
+      end
     else
       []
     end

@@ -160,10 +160,12 @@ class TestCMakeConfig < TestCMake
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
           with_compilers do
-            # On mingw, we always use MinGW Makefiles generator
-            MiniPortile.stub(:mingw?, true) do
-              assert_equal(['-G', 'MinGW Makefiles'] + default_x86_compile_flags,
-                           @recipe.configure_defaults)
+            # On mingw with GCC, use MinGW Makefiles
+            @recipe.stub(:generator_available?, ->(g) { g == 'MinGW' }) do
+              MiniPortile.stub(:mingw?, true) do
+                assert_equal(['-G', 'MinGW Makefiles'] + default_x86_compile_flags,
+                             @recipe.configure_defaults)
+              end
             end
           end
         end
@@ -176,10 +178,12 @@ class TestCMakeConfig < TestCMake
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
           with_compilers do
-            # On mingw, we always use MinGW Makefiles generator
-            MiniPortile.stub(:mingw?, true) do
-              assert_equal(['-G', 'MinGW Makefiles'] + default_x86_compile_flags,
-                           @recipe.configure_defaults)
+            # On mingw with only Unix Makefiles available (no Ninja, no MinGW)
+            @recipe.stub(:generator_available?, ->(g) { g == 'Unix' }) do
+              MiniPortile.stub(:mingw?, true) do
+                assert_equal(['-G', 'Unix Makefiles'] + default_x86_compile_flags,
+                             @recipe.configure_defaults)
+              end
             end
           end
         end
@@ -192,7 +196,7 @@ class TestCMakeConfig < TestCMake
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
           with_compilers do
-            Open3.stub(:capture2, cmake_help_mock('MinGW')) do
+            @recipe.stub(:generator_available?, ->(g) { g == 'MinGW' }) do
               MiniPortile.stub(:mingw?, true) do
                 assert_equal(['-G', 'MinGW Makefiles'] + default_x86_compile_flags, @recipe.configure_defaults)
               end
@@ -208,7 +212,7 @@ class TestCMakeConfig < TestCMake
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
           with_compilers do
-            Open3.stub(:capture2, cmake_help_mock('NMake')) do
+            @recipe.stub(:generator_available?, ->(g) { g == 'NMake' }) do
               MiniPortile.stub(:mswin?, true) do
                 assert_equal(['-G', 'NMake Makefiles'] + default_x86_compile_flags, @recipe.configure_defaults)
               end
