@@ -53,12 +53,11 @@ jobs:
   test-examples:
     env:
       MAKEFLAGS: -j2
-      LDFLAGS: "-L/usr/local/opt/libiconv/lib" # for macos-13, sigh
     strategy:
       fail-fast: false
       matrix:
         # use macos-13 (not 14) because libyaml 0.2.5 doesn't have up-to-date config.guess and config.sub
-        platform: [ubuntu-latest, windows-latest, macos-13]
+        platform: [ubuntu-latest, windows-latest, macos-15-intel, macos-latest]
         ruby: ["3.1"]
     runs-on: ${{ matrix.platform }}
     steps:

@@ -117,6 +117,8 @@ zlib.files << {
   url: "file://#{File.dirname(__FILE__)}/#{zlib.name}-#{zlib.version}.tar.gz",
   md5: "44d667c142d7cda120332623eab69f40",
 }
+# Fix fdopen macro conflict on macOS 14+ (zlib 1.2.8 issue) - only apply on darwin
+zlib.patch_files << File.join(__dir__, "zlib-macos-fdopen.patch") if MiniPortile.darwin?
 
 recipes.push zlib
 
