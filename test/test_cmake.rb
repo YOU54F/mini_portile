@@ -8,6 +8,10 @@ class TestCMake < TestCase
     @assets_path = File.expand_path("../assets", __FILE__)
     @tar_path = File.expand_path("../../tmp/test-cmake-1.0.tar.gz", __FILE__)
 
+    # Skip CMake tests if cmake is not available
+    stdout, status = Open3.capture2("cmake --help")
+    skip "cmake not available" unless status.success?
+
     # remove any previous test files
     FileUtils.rm_rf("tmp")
 
