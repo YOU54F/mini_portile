@@ -36,8 +36,7 @@ unless arm64_darwin?
 end
 
 
-# libxml2 2.9.13 is still shipping an old version of automake that doesn't support arm64-darwin
-unless windows? || arm64_darwin?
+unless windows?
   # i can't get this version to build on Github Actions windows-latest / windows-2019
   sqlite3 = MiniPortile.new "sqlite3", "3.35.4"
   sqlite3.files << "https://www.sqlite.org/2021/sqlite-autoconf-3350400.tar.gz"
@@ -46,7 +45,7 @@ unless windows? || arm64_darwin?
 end
 
 
-unless windows? || arm64_darwin?
+unless windows?
   # i can't get this version to build on Github Actions windows-latest / windows-2019
   # c-ares
   c_ares = MiniPortile.new "c-ares", "1.7.5"
@@ -117,6 +116,8 @@ zlib.files << {
   url: "file://#{File.dirname(__FILE__)}/#{zlib.name}-#{zlib.version}.tar.gz",
   md5: "44d667c142d7cda120332623eab69f40",
 }
+# Fix fdopen macro conflict on macOS 14+ (zlib 1.2.8 issue) - only apply on darwin
+zlib.patch_files << File.join(__dir__, "zlib-macos-fdopen.patch") if MiniPortile.darwin?
 
 recipes.push zlib
 

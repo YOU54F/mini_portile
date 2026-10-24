@@ -413,11 +413,15 @@ class MiniPortile
   end
 
   def configure_defaults
-    [
-      "--host=#{@host}",    # build for specific target (host)
+    defaults = [
       "--enable-static",    # build static library
       "--disable-shared"    # disable generation of shared object
     ]
+    # Only pass --host when cross-compiling; native builds don't need it
+    # and passing an unrecognized host triple (e.g. arm64-apple-darwin25.6.0)
+    # breaks older config.sub (e.g. libyaml 0.2.5)
+    defaults.unshift("--host=#{@host}") if @host != @original_host
+    defaults
   end
 
   def configure_prefix
