@@ -104,9 +104,9 @@ class MiniPortileCMake < MiniPortile
   end
 
   def generator_available?(generator_type)
-    stdout_str, status = Open3.capture2("#{cmake_cmd} --help")
+    stdout_str, status = Open3.capture2([cmake_cmd, "--help"])
 
-    raise 'Unable to determine whether CMake supports #{generator_type} Makefile generator' unless status.success?
+    raise "Unable to determine whether CMake supports #{generator_type} Makefiles generator" unless status.success?
 
     stdout_str.include?("#{generator_type} Makefiles")
   end

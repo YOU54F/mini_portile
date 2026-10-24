@@ -1,0 +1,11 @@
+--- a/zutil.h
++++ b/zutil.h
+@@ -125,7 +125,7 @@
+ #  if defined(_WIN32_WCE)
+ #    define fdopen _fdopen
+ #  endif
+-#  define fdopen(fd,mode) NULL /* No fdopen() */
++// #  define fdopen(fd,mode) NULL /* No fdopen() */
+ #endif
+ 
+ #ifndef Z_SOLO

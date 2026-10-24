@@ -96,7 +96,8 @@ class ZlibRecipe < MiniPortile
   def compile
     return super unless windows?
 
-    execute "compile", "make -f win32/Makefile.gcc"
+    # Only build library targets, skip example.exe and minigzip.exe which fail to link on Windows
+    execute "compile", "make -f win32/Makefile.gcc -j1 STATICLIB SHAREDLIB IMPLIB"
   end
 
   def install
@@ -117,6 +118,8 @@ zlib.files << {
   url: "file://#{File.dirname(__FILE__)}/#{zlib.name}-#{zlib.version}.tar.gz",
   md5: "44d667c142d7cda120332623eab69f40",
 }
+# Fix fdopen macro conflict on macOS 14+ (zlib 1.2.8 issue)
+zlib.patch_files << File.join(__dir__, "zlib-macos-fdopen.patch")
 
 recipes.push zlib
 
