@@ -207,6 +207,23 @@ class TestCMakeConfig < TestCMake
     end
   end
 
+  def test_configure_defaults_with_ninja_generator
+    MiniPortile.stub(:linux?, true) do
+      MiniPortile.stub(:darwin?, false) do
+        with_stubbed_target do
+          with_compilers do
+            # Only Ninja available on mingw
+            @recipe.stub(:generator_available?, ->(g) { g == 'Ninja' }) do
+              MiniPortile.stub(:mingw?, true) do
+                assert_equal(['-G', 'Ninja'] + default_x86_compile_flags, @recipe.configure_defaults)
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
   def test_configure_defaults_with_nmake_makefiles
     MiniPortile.stub(:linux?, true) do
       MiniPortile.stub(:darwin?, false) do
