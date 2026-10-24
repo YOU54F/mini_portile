@@ -155,17 +155,19 @@ class TestCMakeConfig < TestCMake
     end
   end
 
-  def test_configure_defaults_with_unix_makefiles
+  def test_configure_defaults_with_mingw_gcc
     MiniPortile.stub(:linux?, true) do
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
-          with_compilers do
-            # On mingw with GCC, use MinGW Makefiles
-            @recipe.stub(:generator_available?, ->(g) { g == 'MinGW' }) do
-              MiniPortile.stub(:mingw?, true) do
-                assert_equal(['-G', 'MinGW Makefiles'] + default_x86_compile_flags,
-                             @recipe.configure_defaults)
-              end
+          with_compilers(c_compiler: 'gcc', cxx_compiler: 'g++') do
+            MiniPortile.stub(:mingw?, true) do
+              expected = ['-G', 'MinGW Makefiles',
+                "-DCMAKE_SYSTEM_NAME=Linux",
+                "-DCMAKE_SYSTEM_PROCESSOR=x86_64",
+                "-DCMAKE_C_COMPILER=gcc",
+                "-DCMAKE_CXX_COMPILER=g++",
+                "-DCMAKE_BUILD_TYPE=Release"]
+              assert_equal(expected, @recipe.configure_defaults)
             end
           end
         end
@@ -173,50 +175,19 @@ class TestCMakeConfig < TestCMake
     end
   end
 
-  def test_configure_defaults_with_msys_makefiles
+  def test_configure_defaults_with_mingw_clang
     MiniPortile.stub(:linux?, true) do
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
-          with_compilers do
-            # On mingw with only Unix Makefiles available (no Ninja, no MinGW)
-            @recipe.stub(:generator_available?, ->(g) { g == 'Unix' }) do
-              MiniPortile.stub(:mingw?, true) do
-                assert_equal(['-G', 'Unix Makefiles'] + default_x86_compile_flags,
-                             @recipe.configure_defaults)
-              end
-            end
-          end
-        end
-      end
-    end
-  end
-
-  def test_configure_defaults_with_mingw_makefiles
-    MiniPortile.stub(:linux?, true) do
-      MiniPortile.stub(:darwin?, false) do
-        with_stubbed_target do
-          with_compilers do
-            @recipe.stub(:generator_available?, ->(g) { g == 'MinGW' }) do
-              MiniPortile.stub(:mingw?, true) do
-                assert_equal(['-G', 'MinGW Makefiles'] + default_x86_compile_flags, @recipe.configure_defaults)
-              end
-            end
-          end
-        end
-      end
-    end
-  end
-
-  def test_configure_defaults_with_ninja_generator
-    MiniPortile.stub(:linux?, true) do
-      MiniPortile.stub(:darwin?, false) do
-        with_stubbed_target do
-          with_compilers do
-            # Only Ninja available on mingw
-            @recipe.stub(:generator_available?, ->(g) { g == 'Ninja' }) do
-              MiniPortile.stub(:mingw?, true) do
-                assert_equal(['-G', 'Ninja'] + default_x86_compile_flags, @recipe.configure_defaults)
-              end
+          with_compilers(c_compiler: 'clang', cxx_compiler: 'clang++') do
+            MiniPortile.stub(:mingw?, true) do
+              expected = ['-G', 'Unix Makefiles',
+                "-DCMAKE_SYSTEM_NAME=Linux",
+                "-DCMAKE_SYSTEM_PROCESSOR=x86_64",
+                "-DCMAKE_C_COMPILER=clang",
+                "-DCMAKE_CXX_COMPILER=clang++",
+                "-DCMAKE_BUILD_TYPE=Release"]
+              assert_equal(expected, @recipe.configure_defaults)
             end
           end
         end

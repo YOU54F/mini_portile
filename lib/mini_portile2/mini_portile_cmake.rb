@@ -43,13 +43,8 @@ class MiniPortileCMake < MiniPortile
 
   def make_cmd
     return "nmake" if MiniPortile.mswin?
-    # Check if we're using Ninja generator (from computed options)
-    idx = computed_options.index('-G')
-    if idx && computed_options[idx + 1]&.include?('Ninja')
-      "ninja"
-    else
-      super
-    end
+    # On mingw, we use Makefile generators, so use `make`
+    super
   end
 
   def cmake_cmd
@@ -66,16 +61,12 @@ class MiniPortileCMake < MiniPortile
     if MiniPortile.mswin? && generator_available?('NMake')
       ['-G', 'NMake Makefiles']
     elsif MiniPortile.mingw?
-      # On MinGW/MSYS2, prefer MinGW Makefiles (uses `make`) over Ninja
-      # since Ninja may not be installed even if CMake lists it as a generator
-      if generator_available?('MinGW') && cc_cmd !~ /clang/
+      # On MinGW/MSYS2, always use a Makefile generator to ensure `make` works.
+      # Don't rely on generator_available? since it may fail on some CI runners.
+      if cc_cmd !~ /clang/
         ['-G', 'MinGW Makefiles']
-      elsif generator_available?('Unix')
-        ['-G', 'Unix Makefiles']
-      elsif generator_available?('Ninja')
-        ['-G', 'Ninja']
       else
-        []
+        ['-G', 'Unix Makefiles']
       end
     else
       []
