@@ -160,15 +160,10 @@ class TestCMakeConfig < TestCMake
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
           with_compilers do
-            # When on mingw but only Unix Makefiles is available, it should fall back to no -G flag
-            Open3.stub(:capture2, cmake_help_mock('Unix')) do
-              MiniPortile.stub(:mingw?, true) do
-                # Mock MinGW and MSYS as not available
-                @recipe.stub(:generator_available?, false) do
-                  assert_equal(default_x86_compile_flags,
-                               @recipe.configure_defaults)
-                end
-              end
+            # On mingw, we always use MinGW Makefiles generator
+            MiniPortile.stub(:mingw?, true) do
+              assert_equal(['-G', 'MinGW Makefiles'] + default_x86_compile_flags,
+                           @recipe.configure_defaults)
             end
           end
         end
@@ -181,11 +176,10 @@ class TestCMakeConfig < TestCMake
       MiniPortile.stub(:darwin?, false) do
         with_stubbed_target do
           with_compilers do
-            # Mock MinGW as not available, MSYS as available
-            @recipe.stub(:generator_available?, ->(g) { g == 'MSYS' }) do
-              MiniPortile.stub(:mingw?, true) do
-                assert_equal(['-G', 'MSYS Makefiles'] + default_x86_compile_flags, @recipe.configure_defaults)
-              end
+            # On mingw, we always use MinGW Makefiles generator
+            MiniPortile.stub(:mingw?, true) do
+              assert_equal(['-G', 'MinGW Makefiles'] + default_x86_compile_flags,
+                           @recipe.configure_defaults)
             end
           end
         end

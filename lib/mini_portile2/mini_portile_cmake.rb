@@ -60,13 +60,8 @@ class MiniPortileCMake < MiniPortile
     if MiniPortile.mswin? && generator_available?('NMake')
       ['-G', 'NMake Makefiles']
     elsif MiniPortile.mingw?
-      if generator_available?('MinGW')
-        ['-G', 'MinGW Makefiles']
-      elsif generator_available?('MSYS')
-        ['-G', 'MSYS Makefiles']
-      else
-        []
-      end
+      # Force MinGW Makefiles generator on MinGW/MSYS2 - generator_available? may not detect it correctly
+      ['-G', 'MinGW Makefiles']
     else
       []
     end
