@@ -413,11 +413,15 @@ class MiniPortile
   end
 
   def configure_defaults
-    [
-      "--host=#{@host}",    # build for specific target (host)
+    defaults = [
       "--enable-static",    # build static library
       "--disable-shared"    # disable generation of shared object
     ]
+    # Only pass --host when cross-compiling; native builds don't need it
+    # and passing an unrecognized host triple (e.g. aarch64-w64-mingw32 on older config.sub)
+    # breaks autoconf-based projects
+    defaults.unshift("--host=#{@host}") if @host != @original_host
+    defaults
   end
 
   def configure_prefix
