@@ -61,13 +61,9 @@ class MiniPortileCMake < MiniPortile
     if MiniPortile.mswin? && generator_available?('NMake')
       ['-G', 'NMake Makefiles']
     elsif MiniPortile.mingw?
-      # On MinGW/MSYS2, always use a Makefile generator to ensure `make` works.
-      # Don't rely on generator_available? since it may fail on some CI runners.
-      if cc_cmd !~ /clang/
-        ['-G', 'MinGW Makefiles']
-      else
-        ['-G', 'Unix Makefiles']
-      end
+      # Use Unix Makefiles on MSYS2/MinGW - MinGW Makefiles has path escaping issues
+      # with newer CMake on ucrt64/mingw64 environments
+      ['-G', 'Unix Makefiles']
     else
       []
     end

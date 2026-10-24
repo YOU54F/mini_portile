@@ -161,7 +161,7 @@ class TestCMakeConfig < TestCMake
         with_stubbed_target do
           with_compilers(c_compiler: 'gcc', cxx_compiler: 'g++') do
             MiniPortile.stub(:mingw?, true) do
-              expected = ['-G', 'MinGW Makefiles',
+              expected = ['-G', 'Unix Makefiles',
                 "-DCMAKE_SYSTEM_NAME=Linux",
                 "-DCMAKE_SYSTEM_PROCESSOR=x86_64",
                 "-DCMAKE_C_COMPILER=gcc",
